@@ -82,6 +82,10 @@ listWithNoRep (h:t) =
 listWithNoRep _ = []
 
 
+-- Helper function to use in graph module
+cartesianProd s1 s2 = fromList [(x, y) | x <- toList s1, y <- toList s2]
+
+
 -- listWithNoRep2 (h:t) =
 --     fst 
 --         (foldr
