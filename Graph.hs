@@ -1,6 +1,8 @@
 module Graph where
+import Set(Set)
 import qualified Set as Set
-import qualified Data.Either as Set
+
+
 class Graph g where
   empty   :: g a
   vertex  :: a -> g a
@@ -23,13 +25,19 @@ instance Graph Relation where
     connect g1 g2 = 
         Relation 
             (Set.union (domain g1) (domain g2)) 
-            (union 
-                (union (relation g1) (relation g2))
-                (cartesianProd (domain g1) (domain g2))
+            (Set.union 
+                (Set.union (relation g1) (relation g2))
+                (Set.cartesianProd (domain g1) (domain g2))
             )
 
                 
 instance (Ord a, Num a) => Num (Relation a) where
+    fromInteger = vertex . fromInteger
+    (+) = union
+    (*) = connect
+    signum = const empty
+    abs = id
+    negate = id
 
 instance Graph Basic where
     empty = Empty
@@ -39,6 +47,15 @@ instance Graph Basic where
 
 
 instance Ord a => Eq (Basic a) where
+    g1 == g2 =
+        let rel_form_1 = fromBasic g1
+            rel_form_2 = fromBasic g2
+        in
+            domain rel_form_1 == domain rel_form_2 &&
+            relation rel_form_1 == relation rel_form_2
+
+            
+            
 
 instance (Ord a, Num a) => Num (Basic a) where
     fromInteger = vertex . fromInteger
@@ -55,9 +72,26 @@ instance Monoid (Basic a) where
   mempty = Empty
 
 fromBasic :: Graph g => Basic a -> g a
-fromBasic = undefined
+fromBasic Empty = empty
+fromBasic (Vertex x) = vertex x
+fromBasic (Union g1 g2) = union (fromBasic g1) (fromBasic g2)
+fromBasic (Connect g1 g2) = connect (fromBasic g1) (fromBasic g2)
+
+
+
+
 
 instance (Ord a, Show a) => Show (Basic a) where
+    show g = 
+        let rel_form = fromBasic g in
+        let edges = Set.toAscList (relation rel_form)
+            vertices = Set.toAscList (domain rel_form)
+        in 
+        let vertices_in_edges = foldl (\acc (x, y) -> x : (y : acc)) [] edges in
+        let lonely_vertices = filter (\x -> notElem x vertices_in_edges) vertices in
+            "edges " ++ show edges ++ " + vertices " ++ show lonely_vertices
+        
+
 
 -- | Example graph
 -- >>> example34
@@ -73,7 +107,7 @@ instance Functor Basic where
     fmap func Empty = Empty
     fmap func (Vertex x) = Vertex (func x)
     fmap func (Union g1 g2) = Union (fmap func g1) (fmap func g2)
-    fmap func (Connect g2 g2) = Connect (fmap func g1) (fmap func g2)
+    fmap func (Connect g1 g2) = Connect (fmap func g1) (fmap func g2)
 
 -- | Merge vertices
 -- >>> mergeV 3 4 34 example34

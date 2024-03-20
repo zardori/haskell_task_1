@@ -1,5 +1,5 @@
 module Set(Set(..), empty, null, singleton, union, fromList
-              , member, toList, toAscList, elems
+              , member, toList, toAscList, elems, cartesianProd
               ) where
 import Prelude hiding(null)
 import Data.List (sort)
@@ -25,7 +25,7 @@ singleton :: a -> Set a
 singleton = Singleton
 
 fromList :: [a] -> Set a
-fromList l = Empty
+fromList = foldl (\set elem -> insert elem set) Empty
 
 toList :: Set a -> [a]
 toList Empty = []
