@@ -77,31 +77,45 @@ fromBasic (Vertex x) = vertex x
 fromBasic (Union g1 g2) = union (fromBasic g1) (fromBasic g2)
 fromBasic (Connect g1 g2) = connect (fromBasic g1) (fromBasic g2)
 
-
-
+edgesAndVertices :: (Ord a, Show a) => (Basic a) -> ([(a, a)], [a])
+edgesAndVertices g =
+    let rel_form = fromBasic g in
+    let edges = Set.toAscList (relation rel_form)
+        vertices = Set.toAscList (domain rel_form)
+    in 
+    let vertices_in_edges = foldl (\acc (x, y) -> x : (y : acc)) [] edges in
+    let lonely_vertices = filter (\x -> notElem x vertices_in_edges) vertices in
+        (edges, lonely_vertices)
 
 
 instance (Ord a, Show a) => Show (Basic a) where
-    show g = 
-        let rel_form = fromBasic g in
-        let edges = Set.toAscList (relation rel_form)
-            vertices = Set.toAscList (domain rel_form)
-        in 
-        let vertices_in_edges = foldl (\acc (x, y) -> x : (y : acc)) [] edges in
-        let lonely_vertices = filter (\x -> notElem x vertices_in_edges) vertices in
-            "edges " ++ show edges ++ " + vertices " ++ show lonely_vertices
+show g = let edges, lonely_vertices = (edgesAndVertices g) in
+    "edges " ++ show edges ++ " + vertices " ++ show lonely_vertices
+
+
+-- instance (Ord a, Show a) => Show (Basic a) where
+--     show g = 
+--         let rel_form = fromBasic g in
+--         let edges = Set.toAscList (relation rel_form)
+--             vertices = Set.toAscList (domain rel_form)
+--         in 
+--         let vertices_in_edges = foldl (\acc (x, y) -> x : (y : acc)) [] edges in
+--         let lonely_vertices = filter (\x -> notElem x vertices_in_edges) vertices in
+--             "edges " ++ show edges ++ " + vertices " ++ show lonely_vertices
         
 
 
 -- | Example graph
 -- >>> example34
 -- edges [(1,2),(2,3),(2,4),(3,5),(4,5)] + vertices [17]
-
+ 
 example34 :: Basic Int
 example34 = 1*2 + 2*(3+4) + (3+4)*5 + 17
 
 todot :: (Ord a, Show a) => Basic a -> String
-todot = undefined
+todot = let edges, lonely_vertices = edgesAndVertices g in
+    "dirgraph {\n" ++ (foldr (\(a, b), acc -> a ++ " -> " ++ b ++ ";\n" ++ acc) "" edges)
+    ++ (foldr (\x, acc -> x ++ ";\n" ++ acc) "" lonely_vertices) ++ "}"
 
 instance Functor Basic where
     fmap func Empty = Empty
@@ -114,7 +128,25 @@ instance Functor Basic where
 -- edges [(1,2),(2,34),(34,5)] + vertices [17]
 
 mergeV :: Eq a => a -> a -> a -> Basic a -> Basic a
-mergeV = undefined
+mergeV _ _ _ Empty = Empty
+mergeV old1 old2 new (Singleton node_val)
+    | node_val == old1 || node_val == old2 = (Singleton new)
+    | otherwise                            = (Singleton node_val)
+mergeV x y z (Union g1 g2) = Union (mergeV x y z g1) (mergeV x y z g2)
+mergeV x y z (Connect g1 g2) = Connect (mergeV x y z g1) (mergeV x y z g2)
+    
+
+
+--     let helper _ _ _ Empty = (Empty, False)
+--         helper old1 old2 new (Singleton node_val)
+--             | node_val == old1 || node_val == old2 = ((Singleton new), True)
+--             | otherwise                            = ((Singleton node_val), False)
+--         helper old1 old2 new (Union g1 g2)
+--             | node_val
+
+
+-- mergeV _ _ _ Empty = Empty
+
 
 instance Applicative Basic where
 
