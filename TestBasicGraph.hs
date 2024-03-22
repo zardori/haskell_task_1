@@ -43,7 +43,7 @@ monadAssocProp' x y z = ((x >> y) >> z) == (x >> (y >> z))
 
 
 main = do
-       let monadTests = False
+       let monadTests = True
        writeln "connect left unit"
        quickCheck leftUnit
        writeln "connect right unit"

@@ -27,10 +27,13 @@ singleton = Singleton
 fromList :: [a] -> Set a
 fromList = foldl (\set elem -> insert elem set) Empty
 
+toListAcc :: Set a -> [a] -> [a]
+toListAcc Empty acc = acc
+toListAcc (Singleton x) acc = x : acc
+toListAcc (Union s1 s2) acc = toListAcc s1 (toListAcc s2 acc)
+
 toList :: Set a -> [a]
-toList Empty = []
-toList (Singleton x) = [x]
-toList (Union s1 s2) = toList s1 ++ toList s2
+toList s = toListAcc s []
 
 toAscList :: Ord a => Set a -> [a]
 toAscList set = listWithNoRep (sort (toList set))
@@ -44,7 +47,7 @@ union = Union
 insert :: a -> Set a -> Set a
 insert elem Empty         = Singleton elem
 insert elem (Singleton x) = Union (Singleton x) (Singleton elem)
-insert elem (Union s1 s2) = insert elem s1
+insert elem set = Union (Singleton elem) set
 
 instance Ord a => Eq (Set a) where
     s1 == s2 = toAscList s1 == toAscList s2
