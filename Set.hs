@@ -18,14 +18,14 @@ null _     = False
 
 member :: Eq a => a -> Set a -> Bool
 member _ Empty = False
-member elem (Singleton x) = elem == x
-member elem (Union s1 s2) = member elem s1 || member elem s2
+member x (Singleton y) = x == y
+member x (Union s1 s2) = member x s1 || member x s2
 
 singleton :: a -> Set a
 singleton = Singleton
 
 fromList :: [a] -> Set a
-fromList = foldl (\set elem -> insert elem set) Empty
+fromList = foldl (\set x -> insert x set) Empty
 
 toListAcc :: Set a -> [a] -> [a]
 toListAcc Empty acc = acc
@@ -45,9 +45,9 @@ union :: Set a -> Set a -> Set a
 union = Union
 
 insert :: a -> Set a -> Set a
-insert elem Empty         = Singleton elem
-insert elem (Singleton x) = Union (Singleton x) (Singleton elem)
-insert elem set = Union (Singleton elem) set
+insert x Empty         = Singleton x
+insert x (Singleton y) = Union (Singleton y) (Singleton x)
+insert x set = Union (Singleton x) set
 
 instance Ord a => Eq (Set a) where
     s1 == s2 = toAscList s1 == toAscList s2
@@ -62,13 +62,13 @@ instance Show a => Show (Set a) where
     show set = show (toList set) 
 
 instance Functor Set where
-    fmap func Empty         = Empty
+    fmap _ Empty            = Empty
     fmap func (Singleton x) = Singleton (func x)
     fmap func (Union s1 s2) = Union (fmap func s1) (fmap func s2)
 
 
-
 -- Remove repetitions from sorted list
+listWithNoRep :: Eq a => [a] -> [a]
 listWithNoRep (h:t) =
     reverse
         (fst 
@@ -86,27 +86,5 @@ listWithNoRep _ = []
 
 
 -- Helper function to use in graph module
+cartesianProd :: Set a -> Set b -> Set (a, b)
 cartesianProd s1 s2 = fromList [(x, y) | x <- toList s1, y <- toList s2]
-
-
--- listWithNoRep2 (h:t) =
---     fst 
---         (foldr
---             (\curr_elem (result_list, last_elem)-> 
---                 if last_elem /= curr_elem
---                 then (curr_elem : result_list, curr_elem)
---                 else (result_list, curr_elem)
---             )
---             ([], h)
---             t
---         )
--- listWithNoRep2 _ = []
-
-
--- mergeWithNoRep [] l = l
--- mergeWithNoRep l [] = l
--- mergeWithNoRep (h1:t1) (h2:t2) = []
-
-
-
--- sortWithNoRep input_list = input_list

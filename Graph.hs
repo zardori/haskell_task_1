@@ -55,8 +55,6 @@ instance Ord a => Eq (Basic a) where
             relation rel_form_1 == relation rel_form_2
 
             
-            
-
 instance (Ord a, Num a) => Num (Basic a) where
     fromInteger = vertex . fromInteger
     (+)         = union
@@ -77,11 +75,6 @@ fromBasic (Vertex x) = vertex x
 fromBasic (Union g1 g2) = union (fromBasic g1) (fromBasic g2)
 fromBasic (Connect g1 g2) = connect (fromBasic g1) (fromBasic g2)
 
--- vertices :: (Ord a) => Relation a -> [a]
--- vertices g = Set.toAscList (domain g)
-
--- edges :: (Ord a) => Relation a -> [(a, a)]
--- edges g = Set.toAscList (relation g)
 
 edgesAndVertices :: (Ord a, Show a) => (Basic a) -> ([(a, a)], [a])
 edgesAndVertices g =
@@ -92,30 +85,11 @@ edgesAndVertices g =
     let lonely_vertices = filter (\x -> notElem x vertices_in_edges) vertices in
         (edges, lonely_vertices)
 
--- edgesAndVertices :: (Ord a, Show a) => (Basic a) -> ([(a, a)], [a])
--- edgesAndVertices g =
---     let rel_form = fromBasic g in
---     let edges = Set.toList (relation rel_form)
---         vertices = Set.toList (domain rel_form) in 
---             (edges, vertices)
-
-
 
 instance (Ord a, Show a) => Show (Basic a) where
     show g = let (edges, lonely_vertices) = edgesAndVertices g in
         "edges " ++ show edges ++ " + vertices " ++ show lonely_vertices
 
-
--- instance (Ord a, Show a) => Show (Basic a) where
---     show g = 
---         let rel_form = fromBasic g in
---         let edges = Set.toAscList (relation rel_form)
---             vertices = Set.toAscList (domain rel_form)
---         in 
---         let vertices_in_edges = foldl (\acc (x, y) -> x : (y : acc)) [] edges in
---         let lonely_vertices = filter (\x -> notElem x vertices_in_edges) vertices in
---             "edges " ++ show edges ++ " + vertices " ++ show lonely_vertices
-        
 
 
 -- | Example graph
@@ -131,7 +105,7 @@ todot g = let (edges, lonely_vertices) = edgesAndVertices g in
     ++ (foldr (\x acc -> (show x) ++ ";\n" ++ acc) "" lonely_vertices) ++ "}"
 
 instance Functor Basic where
-    fmap func Empty = Empty
+    fmap _ Empty = Empty
     fmap func (Vertex x) = Vertex (func x)
     fmap func (Union g1 g2) = Union (fmap func g1) (fmap func g2)
     fmap func (Connect g1 g2) = Connect (fmap func g1) (fmap func g2)
@@ -177,4 +151,3 @@ splitV old new1 new2 graph =
             then Union (Vertex new1) (Vertex new2)
             else Vertex x
         )
-
